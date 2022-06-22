@@ -3,47 +3,52 @@
 using namespace std;
 
 int sz, m, n;
-list<int> a, b;
-int suma = 0, sumb = 0;
+vector<int> a, b;
 
-int calc(int size, const list<int> &pizza, int s) {
-    if (size == 0) return 1;
-    if (size == s) return 1;
+vector<int> ca, cb;
+map<int, int> ma, mb;
 
-    int ret = 0;
-
-    auto b = pizza.begin();
-    auto e = ++pizza.begin();
-    int sum = *b;
-    while (b != pizza.end()) {
-        if (sum == size) {
-            ++ret;
-            sum -= *b;
-            ++b;
-            sum += *e;
-            ++e;
-            if (e == pizza.end()) e = pizza.begin();
-        } else if (sum > size) {
-            sum -= *b;
-            ++b;
-        } else if (sum < size) {
-            sum += *e;
-            ++e;
-            if (e == pizza.end()) e = pizza.begin();
-        }
+void make_cvecs() {
+    ca.resize(2 * m);
+    ca.front() = a.front();
+    for (auto i = 1; i < 2 * m; ++i) {
+        ca[i] = ca[i - 1] + a[i % m];
     }
 
-    return ret;
+    cb.resize(2 * n);
+    cb.front() = b.front();
+    for (auto i = 1; i < 2 * n; ++i) {
+        cb[i] = cb[i - 1] + b[i % n];
+    }
 }
 
-long long sol() {
-    long long ret = 0;
+void _regi(vector<int> &cv, map<int, int> &mp, int cnt) {
+    mp[0] = 1;
+    mp[cv[cnt - 1]] = 1;
+    for (auto i = 0; i < cnt; ++i) {
+        for (auto j = 0; j < cnt - 1; ++j) {
+            if (i - 1 == -1) {
+                ++mp[cv[i + j]];
+            } else {
+                ++mp[cv[i + j] - cv[i - 1]];
+            }
+        }
+    }
+}
 
-    for (auto i = 0; i <= min(suma, sz); ++i) {
-        auto q = calc(i, a, suma);
-        if (q != 0 && sz - i <= sumb) {
-            auto p = calc(sz - i, b, sumb);
-            ret += q * p;
+void regi_mps() {
+    _regi(ca, ma, m);
+    _regi(cb, mb, n);
+}
+
+int sol() {
+    int ret = 0;
+
+    make_cvecs();
+    regi_mps();
+    for (const auto &el: ma) {
+        if (sz >= el.first) {
+            ret += el.second * mb[sz - el.first];
         }
     }
 
@@ -57,18 +62,14 @@ int main() {
 
     cin >> sz;
     cin >> m >> n;
-    for (auto i = 0; i < m; ++i) {
-        int t;
-        cin >> t;
-        suma += t;
-        a.push_back(t);
-    }
 
-    for (auto i = 0; i < n; ++i) {
-        int t;
-        cin >> t;
-        sumb += t;
-        b.push_back(t);
+    a.resize(m);
+    b.resize(n);
+    for (auto &el: a) {
+        cin >> el;
+    }
+    for (auto &el: b) {
+        cin >> el;
     }
 
     cout << sol();
